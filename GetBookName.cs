@@ -7,23 +7,25 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Linq;
 
 namespace FunctionApp28
 {
     public static class GetBookName
     {
-        [FunctionName("GetBookName")]
+        [FunctionName("GetBookNameByID")]
         public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "{name}")] HttpRequest req, string name)
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "{id}")] HttpRequest req, int id)
         {
             string responseMessage = "";
-            Book book = new Book();
-      
             BookContext bookContext = new BookContext();
-            bookContext.Books.Add(book);
-            bookContext.SaveChanges();
-            responseMessage = $"Book written by {book.BookAuthor} has been added";
-
+            var bookname = bookContext.Books.Where(b => b.BookID == id).FirstOrDefault()?.BookName;
+            if(bookname != null)
+            {
+            responseMessage = $"The book name for that ID is {bookname}";
+            return new OkObjectResult(responseMessage);
+            }
+            responseMessage = $"Could not if a book with ID {id}";
             return new OkObjectResult(responseMessage);
         }
     }
